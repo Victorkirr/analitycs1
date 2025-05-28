@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>QAZNA ANALYTICS</title>
+  <style>
+    body {
+      background-color: #e6f0fa;
+      font-family: Arial, sans-serif;
+      color: #333;
+      padding: 40px;
+    }
+    h1 {
+      color: #0077cc;
+      text-align: center;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    .result, .recommendations {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+    }
+    .low { color: #b30000; }
+    .medium { color: #cc7a00; }
+    .high { color: #006600; }
+  </style>
+</head>
+<body>
+
+  <h1>QAZNA ANALYTICS</h1>
+
+  <form id="creditForm">
+    <label for="monthlyPayment">Платеж по кредитам в месяц (₸):</label>
+    <input type="number" id="monthlyPayment" required>
+
+    <label for="salary">Заработная плата (₸):</label>
+    <input type="number" id="salary" required>
+
+    <label for="extraIncome">Дополнительный доход (₸):</label>
+    <input type="number" id="extraIncome" required>
+
+    <label for="creditScore">Кредитный рейтинг (1-100):</label>
+    <input type="number" id="creditScore" min="1" max="100" required>
+
+    <button type="submit">Рассчитать</button>
+  </form>
+
+  <div id="output" class="result" style="display:none;"></div>
+  <div id="recommendations" class="recommendations" style="display:none;"></div>
+
+  <script>
+    document.getElementById('creditForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const monthlyPayment = parseInt(document.getElementById('monthlyPayment').value);
+      const salary = parseInt(document.getElementById('salary').value);
+      const extraIncome = parseInt(document.getElementById('extraIncome').value);
+      const creditScore = parseInt(document.getElementById('creditScore').value);
+
+      let scoreRating = 1;
+      let ratingText = '';
+      if (creditScore <= 15) {
+        ratingText = "Низкий шанс получить кредит.";
+        scoreRating = 1;
+      } else if (creditScore <= 40) {
+        ratingText = "Хороший шанс получить кредит.";
+        scoreRating = 2;
+      } else {
+        ratingText = "Отличный шанс получить кредит.";
+        scoreRating = 3;
+      }
+
+      let scorePayment = 1;
+      let paymentText = '';
+      if (monthlyPayment >= 60000 && monthlyPayment <= 100000) {
+        paymentText = "Платежи: Отличный шанс.";
+        scorePayment = 3;
+      } else if (monthlyPayment <= 190000) {
+        paymentText = "Платежи: Повышенная нагрузка, советуем рефинансирование.";
+        scorePayment = 2;
+      } else {
+        paymentText = "Платежи: Высокая нагрузка. Шанс кредита до 2 000 000 ₸.";
+        scorePayment = 1;
+      }
+
+      let scoreSalary = 1;
+      let salaryText = '';
+      if (salary >= 100000 && salary <= 250000) {
+        salaryText = "Зарплата: Хороший шанс.";
+        scoreSalary = 2;
+      } else if (salary > 250000) {
+        salaryText = "Зарплата: Высокий шанс.";
+        scoreSalary = 3;
+      } else {
+        salaryText = "Зарплата: Недостаточно для кредита.";
+        scoreSalary = 1;
+      }
+
+      const avgScore = (scoreRating + scorePayment + scoreSalary) / 3;
+      let totalResult = '';
+      let resultClass = '';
+
+      if (avgScore <= 1.5) {
+        totalResult = "Общий результат: ❌ Низкий шанс получить кредит.";
+        resultClass = "low";
+      } else if (avgScore <= 2.5) {
+        totalResult = "Общий результат: ⚠️ Хороший шанс получить кредит.";
+        resultClass = "medium";
+      } else {
+        totalResult = "Общий результат: ✅ Отличный шанс получить кредит.";
+        resultClass = "high";
+      }
+
+      // Рекомендации
+      let recommendations = "<strong>📌 Рекомендации:</strong><br>";
+      if (avgScore <= 1.5) {
+        recommendations += "— Улучшите кредитную историю.<br>";
+        recommendations += "— Уменьшите долговую нагрузку.<br>";
+        recommendations += "— Подумайте о товарных кредитах.<br>";
+        recommendations += "<strong>🏦 Рекомендуемые банки:</strong> Евраз Банк, Халык, Solva, KMF, B.";
+      } else if (avgScore <= 2.5) {
+        recommendations += "— Проверьте предложения РБК, БЦК, Жусан, Хоум.<br>";
+        recommendations += "— Подумайте о товарном кредите до 2 000 000 ₸.<br>";
+      } else {
+        recommendations += "— Отличная ситуация. Рекомендуем банки: РБК, Хоум, БЦК, Жусан, Freedom, Forte, Береке.";
+      }
+
+      document.getElementById('output').innerHTML =
+        `<p><strong>Кредитный рейтинг:</strong> ${ratingText}</p>
+         <p><strong>Платежи:</strong> ${paymentText}</p>
+         <p><strong>Зарплата:</strong> ${salaryText}</p>
+         <p class="${resultClass}"><strong>${totalResult}</strong></p>`;
+      document.getElementById('output').style.display = 'block';
+
+      document.getElementById('recommendations').innerHTML = recommendations;
+      document.getElementById('recommendations').style.display = 'block';
+    });
+  </script>
+
+</body>
+</html>
